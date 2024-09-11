@@ -1,6 +1,0 @@
-.docker/stores
-.DS_Store
-.idea
-supervisord.pid
-laravel/database/database.sqlite
-.vscode
