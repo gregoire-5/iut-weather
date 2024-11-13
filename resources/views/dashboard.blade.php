@@ -1,26 +1,56 @@
-@extends('layouts.app')
+<x-app-layout>
+    <div class="container">
+        <h2>Votre Tableau de Bord</h2>
 
-@section('header')
-    <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-        {{ __('Dashboard') }}
-    </h2>
-@endsection
-
-@section('content')
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
-                    Welcome to your dashboard, {{ Auth::user()->name }}!
-                </div>
+        <!-- Formulaire de recherche de ville -->
+        <form method="GET" action="{{ route('weather.search') }}" class="mb-4">
+            <div class="input-group">
+                <input type="text" name="city" class="form-control" placeholder="Rechercher une ville" required>
+                <button type="submit" class="btn btn-primary">Rechercher</button>
             </div>
+        </form>
 
-            <!-- Weather Search Button -->
-            <div class="mt-4">
-                <a href="{{ route('weather.search') }}" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-500">
-                    Search for Weather in a City
-                </a>
+        <!-- Affichage de la météo recherchée -->
+        @isset($weatherData)
+            <div class="card my-4">
+                <div class="card-header">
+                    Météo à {{ $cityName }}
+                </div>
+                <div class="card-body">
+                    <p>Température : {{ $weatherData['main']['temp'] }}°C</p>
+                    <p>Conditions : {{ $weatherData['weather'][0]['description'] }}</p>
+                </div>
+                <form action="{{ route('user.cities.add') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="name" value="{{ $cityName }}">
+                    <button type="submit" class="btn btn-success">Ajouter aux favoris</button>
+                </form>
+            </div>
+        @endisset
+
+        <!-- Liste des villes favorites -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h4>Vos Villes Favoris</h4>
+            </div>
+            <div class="card-body">
+                @if ($cities->isEmpty())
+                    <p>Vous n'avez aucune ville en favori pour le moment.</p>
+                @else
+                    <ul class="list-group">
+                        @foreach ($cities as $city)
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ $city->name }}
+                                <form action="{{ route('user.cities.remove', $city->id) }}" method="POST">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+                                </form>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
             </div>
         </div>
     </div>
-@endsection
+</x-app-layout>
