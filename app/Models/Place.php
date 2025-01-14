@@ -2,10 +2,22 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Place extends Model
 {
-    use HasFactory;
+    // Allow mass assignment for these fields
+    protected $fillable = ['name', 'country'];
+
+    /**
+     * Define the many-to-many relationship between City and User through the pivot table user_cities.
+     * Each city can belong to multiple users.
+     */
+    
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'user_cities')
+                    ->withPivot('is_favorite')
+                    ->withTimestamps();
+    }
 }

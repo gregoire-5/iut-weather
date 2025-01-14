@@ -1,46 +1,31 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WeatherController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\CityController;
 
-// Route de bienvenue
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Groupement des routes nécessitant l'authentification et la vérification d'email
-Route::middleware(['auth', 'verified'])->group(function () {
-    // Route du tableau de bord
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Routes de profil utilisateur
-    Route::prefix('profile')->group(function () {
-        Route::get('/', [ProfileController::class, 'edit'])->name('profile.edit');
-        Route::patch('/', [ProfileController::class, 'update'])->name('profile.update');
-        Route::delete('/', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    });
+// Route pour rechercher une ville
+Route::post('/search-city', [CityController::class, 'search'])->name('search.city');
 
-    // Routes de gestion des villes de l'utilisateur
-    Route::prefix('user/cities')->group(function () {
-        Route::post('/', [WeatherController::class, 'addCity'])->name('user.cities.add');
-        Route::delete('/{city}', [WeatherController::class, 'removeCity'])->name('user.cities.remove');
-        Route::patch('/{city}/favorite', [WeatherController::class, 'markFavorite'])->name('user.cities.favorite');
-        Route::patch('/{city}/send-forecast', [WeatherController::class, 'sendForecast'])->name('user.cities.send-forecast');
-    });
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Groupement des routes météo
-// Route pour rechercher la météo d'une ville
-Route::get('/weather/search', [WeatherController::class, 'search'])->name('weather.search');
+Route::get('/home', [WeatherController::class, 'home'])->name('home');
+Route::post('/weather/search', [WeatherController::class, 'searchWeather'])->name('weather.search');
+Route::get('/weather/forecast', [WeatherController::class, 'showForecast'])->name('weather.forecast');
+Route::get('/weather/forecast/day-details', [WeatherController::class, 'showDayDetails'])->name('forecast.day-details');
 
-// Route pour afficher la météo d'une ville spécifique
-Route::post('/weather/result', [WeatherController::class, 'searchResult'])->name('weather.result');
+Route::get('/saved-cities', [CityController::class, 'index'])->name('saved-cities');
 
-
-// Route des coordonnées de ville
-Route::get('/city/coordinates', [WeatherController::class, 'cityCoordinates'])->name('city.coordinates');
-
-// Inclusion des routes d'authentification générées automatiquement
 require __DIR__ . '/auth.php';

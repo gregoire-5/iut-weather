@@ -2,20 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;  // Importer la classe Request
-use App\Models\Place;  // Importer le modèle City
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $user = Auth::user();
+        $user = Auth::user(); // Récupère l'utilisateur connecté
+        $favoriteCity = $user->favoriteCities()->first(); // Récupère la ville favorite
+        $savedCities = $user->places; // Récupère toutes les villes enregistrées
 
-        // Récupérer les villes associées à l'utilisateur
-        $cities = Place::where('user_id', $user->id)->get(); 
+        if ($favoriteCity) {
+            // Obtenir la météo via un service externe
+            $favoriteCity->weather = app('App\Services\WeatherService')->getWeatherForCity($favoriteCity->name);
+        }
 
-        // Retourne la vue du dashboard avec les villes
-        return view('dashboard', compact('cities'));
+        return view('dashboard', [
+            'favoriteCity' => $favoriteCity,
+            'savedCities' => $savedCities,
+        ]);
     }
 }

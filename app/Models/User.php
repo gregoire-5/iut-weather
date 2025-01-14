@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable
 {
@@ -43,5 +44,25 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Relation avec les villes favorites.
+     */
+    public function favoriteCities(): BelongsToMany
+    {
+        return $this->belongsToMany(Place::class, 'place_user')
+                    ->withPivot('is_favorite', 'send_forecast')
+                    ->wherePivot('is_favorite', true);
+    }
+
+    /**
+     * Relation avec toutes les villes enregistrées.
+     */
+    public function places(): BelongsToMany
+    {
+        return $this->belongsToMany(Place::class, 'place_user')
+                    ->withPivot('is_favorite', 'send_forecast')
+                    ->withTimestamps();
     }
 }
