@@ -1,3 +1,9 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-200 leading-tight">
@@ -7,47 +13,51 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
-                <div class="p-6 sm:p-8">
-                    <h1 class="text-3xl font-bold text-gray-100 mb-8 text-center">Weather Information</h1>
+            <div class="bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6 sm:p-8">
+                
+                <!-- Titre Principal -->
+                <h1 class="text-3xl font-bold text-gray-100 mb-8 text-center">Weather Information</h1>
 
-                    <!-- Search Form -->
-                    <form action="{{ route('weather.current') }}" method="POST" class="mb-8">
-                        @csrf
-                        <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-                            <div class="w-full sm:w-1/3">
-                                <input type="text" name="city" id="city" placeholder="Enter city name" value="{{ $city ?? old('city') }}" required
-                                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            </div>
-                            <div class="w-full sm:w-1/3">
-                                <input type="date" name="date" id="date" value="{{ $date->format('Y-m-d') ?? old('date', now()->format('Y-m-d')) }}" required
-                                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            </div>
-                            <div class="w-full sm:w-1/3">
-                                <button type="submit"
-                                    class="w-full px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors duration-300">
-                                    Search
-                                </button>
-                            </div>
-                        </div>
-                    </form>
+                <!-- Formulaire de recherche -->
+                <form action="{{ route('weather.current') }}" method="POST" class="mb-8">
+                    @csrf
+                    <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                        <input type="text" name="city" id="city" placeholder="Enter city name" required
+                            value="{{ $city ?? old('city') }}"
+                            class="w-full sm:w-1/3 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:ring-2 focus:ring-blue-500">
 
-                    @if(isset($city) && isset($weather))
+                        <input type="date" name="date" id="date" required
+                            value="{{ $date->format('Y-m-d') ?? old('date', now()->format('Y-m-d')) }}"
+                            class="w-full sm:w-1/3 px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 focus:ring-2 focus:ring-blue-500">
+
+                        <button type="submit"
+                            class="w-full sm:w-1/3 bg-blue-600 text-black font-bold px-6 py-3 rounded-md hover:bg-blue-700 transition duration-300">
+                            Search
+                        </button>
+                    </div>
+                </form>
+
+                @if(isset($city) && isset($weather))
+                    <!-- Titre météo -->
                     <h2 class="text-2xl font-semibold text-gray-100 mb-6 text-center">Weather for {{ $city }}</h2>
 
+                    <!-- Sélecteur de dates -->
                     <div class="mb-8 flex flex-wrap justify-center space-x-2">
                         @foreach ($dates as $dateInfo)
-                        <form action="{{ route('weather.current') }}" method="POST" class="inline mb-2">
-                            @csrf
-                            <input type="hidden" name="city" value="{{ $city }}">
-                            <input type="hidden" name="date" value="{{ $dateInfo['formatted'] }}">
-                            <button type="submit" class="px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-300 {{ $dateInfo['date']->isSameDay($date) ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
-                                {{ $dateInfo['label'] }}
-                            </button>
-                        </form>
+                            <form action="{{ route('weather.current') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="city" value="{{ $city }}">
+                                <input type="hidden" name="date" value="{{ $dateInfo['formatted'] }}">
+                                <button type="submit"
+                                    class="px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-300 
+                                    {{ $dateInfo['date']->isSameDay($date) ? 'bg-blue-600 text-blue-500' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}">
+                                    {{ $dateInfo['label'] }}
+                                </button>
+                            </form>
                         @endforeach
                     </div>
 
+                    <!-- Bloc météo principal -->
                     <div class="bg-gradient-to-r from-blue-800 to-indigo-900 rounded-lg shadow-lg p-6 mb-8">
                         <h3 class="text-2xl font-semibold text-gray-100 mb-4">{{ $date->format('F j, Y') }}</h3>
                         <div class="flex items-center justify-between">
@@ -56,30 +66,27 @@
                                 <p class="text-xl text-gray-300">Feels like {{ round($weather['main']['feels_like']) }}°C</p>
                                 <p class="text-lg text-gray-300 capitalize mt-2">{{ $weather['weather'][0]['description'] }}</p>
                             </div>
-                            <div class="text-right">
-                                <img src="http://openweathermap.org/img/wn/{{ $weather['weather'][0]['icon'] }}@4x.png" alt="{{ $weather['weather'][0]['description'] }}" class="w-32 h-32">
-                            </div>
+                            <img src="http://openweathermap.org/img/wn/{{ $weather['weather'][0]['icon'] }}@4x.png"
+                                alt="{{ $weather['weather'][0]['description'] }}" class="w-32 h-32">
                         </div>
                     </div>
 
-                    <div class="mb-8">
+                    <!-- Bouton téléchargement CSV -->
+                    <div class="mb-8 text-center">
                         <a href="{{ route('weather.export', ['city' => $city]) }}"
-                            class="w-full flex items-center justify-center px-6 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition-colors duration-300">
-                            <!-- <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
-                            </svg> -->
+                            class="px-6 py-3 bg-gray-600 text-black rounded-md hover:bg-gray-700 transition duration-300">
                             Download Forecast CSV
                         </a>
                     </div>
 
-                    <!-- Bento Box Layout for Additional Info -->
+                    <!-- Informations supplémentaires (Bento Box) -->
                     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                        @if(isset($coordinates))
-                        <div class="bg-gray-700 p-4 rounded-lg shadow">
-                            <h3 class="text-gray-400 text-sm mb-2">Coordinates:</h3>
-                            <p class="text-2xl text-gray-100 font-bold">{{ $coordinates['lat'] }}, {{ $coordinates['lon'] }}</p>
-                        </div>
-                        @endif
+                        @isset($coordinates)
+                            <div class="bg-gray-700 p-4 rounded-lg shadow">
+                                <h3 class="text-gray-400 text-sm mb-2">Coordinates</h3>
+                                <p class="text-2xl text-gray-100 font-bold">{{ $coordinates['lat'] }}, {{ $coordinates['lon'] }}</p>
+                            </div>
+                        @endisset
                         <div class="bg-gray-700 p-4 rounded-lg shadow">
                             <h3 class="text-gray-400 text-sm mb-2">Humidity</h3>
                             <p class="text-2xl text-gray-100 font-bold">{{ $weather['main']['humidity'] }}%</p>
@@ -96,34 +103,57 @@
                             <h3 class="text-gray-400 text-sm mb-2">Visibility</h3>
                             <p class="text-2xl text-gray-100 font-bold">{{ $weather['visibility'] / 1000 ?? 'N/A' }} km</p>
                         </div>
-                        @if(isset($weather['sys']['sunrise']))
-                        <div class="bg-gray-700 p-4 rounded-lg shadow">
-                            <h3 class="text-gray-400 text-sm mb-2">Sunrise</h3>
-                            <p class="text-2xl text-gray-100 font-bold">{{ \Carbon\Carbon::createFromTimestamp($weather['sys']['sunrise'])->format('H:i') }}</p>
-                        </div>
-                        @endif
-                        @if(isset($weather['sys']['sunset']))
-                        <div class="bg-gray-700 p-4 rounded-lg shadow">
-                            <h3 class="text-gray-400 text-sm mb-2">Sunset</h3>
-                            <p class="text-2xl text-gray-100 font-bold">{{ \Carbon\Carbon::createFromTimestamp($weather['sys']['sunset'])->format('H:i') }}</p>
-                        </div>
-                        @endif
+                        @isset($weather['sys']['sunrise'])
+                            <div class="bg-gray-700 p-4 rounded-lg shadow">
+                                <h3 class="text-gray-400 text-sm mb-2">Sunrise</h3>
+                                <p class="text-2xl text-gray-100 font-bold">
+                                    {{ \Carbon\Carbon::createFromTimestamp($weather['sys']['sunrise'])->format('H:i') }}
+                                </p>
+                            </div>
+                        @endisset
+                        @isset($weather['sys']['sunset'])
+                            <div class="bg-gray-700 p-4 rounded-lg shadow">
+                                <h3 class="text-gray-400 text-sm mb-2">Sunset</h3>
+                                <p class="text-2xl text-gray-100 font-bold">
+                                    {{ \Carbon\Carbon::createFromTimestamp($weather['sys']['sunset'])->format('H:i') }}
+                                </p>
+                            </div>
+                        @endisset
                         <div class="bg-gray-700 p-4 rounded-lg shadow">
                             <h3 class="text-gray-400 text-sm mb-2">Cloudiness</h3>
                             <p class="text-2xl text-gray-100 font-bold">{{ $weather['clouds']['all'] }}%</p>
                         </div>
-                        @if(isset($weather['uvi']))
-                        <div class="bg-gray-700 p-4 rounded-lg shadow">
-                            <h3 class="text-gray-400 text-sm mb-2">UV Index</h3>
-                            <p class="text-2xl text-gray-100 font-bold">{{ $weather['uvi'] }}</p>
-                        </div>
-                        @endif
                     </div>
-                    @else
+                @else
                     <p class="text-center text-gray-300 text-xl">Enter a city name and date to see the weather information.</p>
-                    @endif
-                </div>
+                @endif
+
             </div>
         </div>
     </div>
 </x-app-layout>
+
+
+<style>
+    svg {
+        width: 40px;
+        height: 40px;
+    }
+
+    .icon-box {
+        text-align: center;
+        padding: 20px;
+        border-radius: 10px;
+        background-color: #1f2937;
+    }
+
+    .icon-box h3 {
+        margin-top: 15px;
+        font-size: 1.2rem;
+        color: white;
+    }
+
+    .icon-box p {
+        color: #9ca3af;
+    }
+</style>

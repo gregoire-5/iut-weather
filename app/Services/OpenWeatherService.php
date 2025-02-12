@@ -9,19 +9,18 @@ use Carbon\Carbon;
 
 class OpenWeatherService
 {
-    protected $apiKey;
-    protected $baseUrl = 'https://api.openweathermap.org/data/2.5';
-    protected $geoUrl = 'https://api.openweathermap.org/geo/1.0';
+    protected string $apiKey;
+    protected string $baseUrl = 'https://api.openweathermap.org/data/2.5';
+    protected string $geoUrl = 'https://api.openweathermap.org/geo/1.0';
 
     public function __construct()
     {
         $this->apiKey = config('services.openweather.key');
     }
 
-    public function getWeatherForDate($city, Carbon $date)
+    public function getWeatherForDate(string $city, Carbon $date): array
     {
         $coordinates = $this->getCoordinates($city);
-
         if (!$coordinates) {
             throw new \Exception("Unable to find coordinates for the city.");
         }
@@ -30,58 +29,48 @@ class OpenWeatherService
 
         return Cache::remember($cacheKey, 1800, function () use ($coordinates, $date) {
             $endpoint = $date->isFuture() ? 'forecast' : 'weather';
+
             $response = Http::get("{$this->baseUrl}/{$endpoint}", [
                 'lat' => $coordinates['lat'],
                 'lon' => $coordinates['lon'],
                 'appid' => $this->apiKey,
                 'units' => 'metric',
                 'dt' => $date->timestamp,
-            ]);
+            ])->throw()->json();
 
-            $response->throw();  // Throw an exception for non-2xx responses
-
-            $data = $response->json();
-
-            // For forecast data, find the closest time to the requested date
             if ($endpoint === 'forecast') {
-                $data = collect($data['list'])->sortBy(function ($item) use ($date) {
-                    return abs(Carbon::createFromTimestamp($item['dt'])->diffInSeconds($date));
-                })->first();
+                return $this->extractClosestForecast($response['list'], $date, $coordinates);
             }
 
-            $data['coordinates'] = $coordinates;  // Add coordinates to the response
-
-            return $data;
+            return array_merge($response, ['coordinates' => $coordinates]);
         });
     }
 
-    protected function getCoordinates($city)
+    protected function getCoordinates(string $city): ?array
     {
-        $cacheKey = "coordinates_{$city}";
-
-        return Cache::remember($cacheKey, 86400, function () use ($city) {
+        return Cache::remember("coordinates_{$city}", 86400, function () use ($city) {
             Log::info("Fetching coordinates for {$city}");
+
             $response = Http::get("{$this->geoUrl}/direct", [
                 'q' => $city,
                 'limit' => 1,
                 'appid' => $this->apiKey,
             ]);
 
-            if ($response->failed()) {
-                Log::error("Failed to fetch coordinates for {$city}: " . $response->body());
+            if ($response->failed() || empty($response->json())) {
+                Log::error("Failed to fetch coordinates for {$city}");
                 return null;
             }
 
-            $data = $response->json();
-            
-            if (empty($data)) {
-                return null;
-            }
+            $data = $response->json()[0];
 
-            return [
-                'lat' => $data[0]['lat'],
-                'lon' => $data[0]['lon'],
-            ];
+            return ['lat' => $data['lat'], 'lon' => $data['lon']];
         });
+    }
+
+    private function extractClosestForecast(array $forecastList, Carbon $date, array $coordinates): array
+    {
+        $closest = collect($forecastList)->sortBy(fn($item) => abs(Carbon::createFromTimestamp($item['dt'])->diffInSeconds($date)))->first();
+        return array_merge($closest, ['coordinates' => $coordinates]);
     }
 }

@@ -7,7 +7,7 @@ use Illuminate\Foundation\Http\FormRequest;
 class WeatherFormRequest extends FormRequest
 {
     /**
-     * Determiner si l'utilisateur est autorisé à faire la request
+     * Determine if user is allowed
      *
      * @return bool
      */
@@ -17,7 +17,7 @@ class WeatherFormRequest extends FormRequest
     }
 
     /**
-     * Les Régles pour appliquer la reuqest 
+     * request rules
      *
      * @return array
      */
