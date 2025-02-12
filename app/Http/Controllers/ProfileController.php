@@ -57,13 +57,4 @@ class ProfileController extends Controller
 
         return Redirect::to('/');
     }
-
-    public function updatePreferences(Request $request)
-    {
-        $user = Auth::user();
-        $user->wants_email = $request->has('wants_email');
-        $user->save();
-
-        return redirect()->back()->with('status', 'Preferences updated successfully!');
-    }
-} 
+}

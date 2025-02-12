@@ -1,31 +1,30 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WeatherController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\CityController;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UserCityController;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-// Route pour rechercher une ville
-Route::post('/search-city', [CityController::class, 'search'])->name('search.city');
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/weather', [WeatherController::class, 'index'])->name('weather.search');
+    Route::post('/weather', [WeatherController::class, 'getCurrentWeather'])->name('weather.current');
+    Route::get('/weather/export/{city}', [WeatherController::class, 'export'])->name('weather.export');
+    Route::get('/my-cities', [UserCityController::class, 'index'])->name('user_cities.index');
+    Route::post('/my-cities', [UserCityController::class, 'store'])->name('user_cities.store');
+    Route::patch('/my-cities/{city}/favorite', [UserCityController::class, 'toggleFavorite'])->name('user_cities.toggle_favorite');
+    Route::patch('/my-cities/{city}/forecast', [UserCityController::class, 'toggleForecast'])->name('user_cities.toggle_forecast');
+    Route::delete('/my-cities/{city}', [UserCityController::class, 'destroy'])->name('user_cities.destroy');
 });
 
-Route::get('/home', [WeatherController::class, 'home'])->name('home');
-Route::post('/weather/search', [WeatherController::class, 'searchWeather'])->name('weather.search');
-Route::get('/weather/forecast', [WeatherController::class, 'showForecast'])->name('weather.forecast');
-Route::get('/weather/forecast/day-details', [WeatherController::class, 'showDayDetails'])->name('forecast.day-details');
-
-Route::get('/saved-cities', [CityController::class, 'index'])->name('saved-cities');
-
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';
